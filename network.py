@@ -21,17 +21,32 @@ class NeuralNetwork(object):
      
         if test_data: n_test = len(test_data)
         n = len(training_data)
+
+        costs = []
         
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
+
+            cost = 0
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
+                cost += self.cost_value
+            costs.append(cost)
+            print("Epoch {0}: {1}".format(j, cost))
+            
             if test_data:
                 print("Epoch {0}: {1} / {2}".format(
                     j, self.evaluate(test_data), n_test))
+        
+        import matplotlib.pyplot as plt
+        
+        plt.plot(range(epochs), costs)
+        plt.xlabel("Epoch")
+        plt.ylabel("MSE")
+        plt.show()
             
 
     def update_mini_batch(self, mini_batch, eta):
@@ -63,6 +78,7 @@ class NeuralNetwork(object):
         
         delta = self.cost_derivative(activations[-1], y) * \
             sigmoid_prime(zs[-1])
+        self.cost_value = self.cost(activations[-1], y) 
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         
@@ -83,6 +99,11 @@ class NeuralNetwork(object):
     def cost_derivative(self, output_activations, y):
        
         return (output_activations-y)
+
+    def cost(self, output_activations, y):
+       
+        return 0.5*np.linalg.norm(output_activations-y)**2
+    
 
 
 def sigmoid(z):
